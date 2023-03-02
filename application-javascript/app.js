@@ -103,7 +103,7 @@ async function main() {
 
       // Build a network instance based on the channel where the smart contract is deployed
       const network = await gateway.getNetwork(channelName);
-      console.log(network.getChannel().getEndorsers());
+
       // Get the contract from the network.
       const contract = network.getContract(chaincodeName);
 
@@ -119,13 +119,6 @@ async function main() {
         try {
           const tx = contract.createTransaction("PushData");
 
-          tx.setEndorsingPeers([
-            "peer1.org1.example.com:17051",
-            "peer1.org2.example.com:19051",
-            "peer0.org2.example.com:9051",
-            "peer0.org1.example.com:7051",
-          ]);
-
           const result = await tx.submit(
             uuidv4(),
             uuidv4(),
@@ -138,9 +131,8 @@ async function main() {
           console.log(`\n--> Transaction Result: ${result.toString()}`);
           console.log(`\n--> Submit Transaction: PushData ${i} success`);
           success++;
-
-          await sleep(1000);
         } catch (error) {
+          console.log(error);
           console.log(`\n--> Submit Transaction: PushData ${i} failed`);
           fail++;
         }
