@@ -24,6 +24,10 @@ const org1UserId = "User1";
 const orgSelector = "org1";
 const mspOrg1 = orgSelector === "org2" ? "Org2MSP" : "Org1MSP";
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
@@ -99,7 +103,7 @@ async function main() {
 
       // Build a network instance based on the channel where the smart contract is deployed
       const network = await gateway.getNetwork(channelName);
-
+      console.log(network.getChannel().getEndorsers());
       // Get the contract from the network.
       const contract = network.getContract(chaincodeName);
 
@@ -108,12 +112,20 @@ async function main() {
       console.log(`*** Result: ${result.toString()}`);
 
       console.log("\n--> Evaluate Transaction: PushData");
-      const tx = contract.createTransaction("PushData");
 
       for (let i = 0; i < totalTry; i++) {
         console.log(`\n--> Submit Transaction: PushData ${i}`);
 
         try {
+          const tx = contract.createTransaction("PushData");
+
+          tx.setEndorsingPeers([
+            "peer1.org1.example.com:17051",
+            "peer1.org2.example.com:19051",
+            "peer0.org2.example.com:9051",
+            "peer0.org1.example.com:7051",
+          ]);
+
           const result = await tx.submit(
             uuidv4(),
             uuidv4(),
@@ -126,6 +138,8 @@ async function main() {
           console.log(`\n--> Transaction Result: ${result.toString()}`);
           console.log(`\n--> Submit Transaction: PushData ${i} success`);
           success++;
+
+          await sleep(1000);
         } catch (error) {
           console.log(`\n--> Submit Transaction: PushData ${i} failed`);
           fail++;
